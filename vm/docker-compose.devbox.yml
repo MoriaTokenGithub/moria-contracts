@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    testrpc:       
+         ports:
+            - "8545:8545"
+    devbox:
+        build:
+            context: ..
+            dockerfile: vm/Dockerfile.devbox
+        ports:
+            - "8080:8080"
+        volumes:
+            - ../src/:/src/
+            - /src/node_modules
+        tty: true
+        depends_on: 
+            - "testrpc"
+        environment:
+            - RPCPORT=8545
