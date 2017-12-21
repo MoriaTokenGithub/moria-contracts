@@ -17,6 +17,7 @@ contract DividendToken is MintableToken {
     for (uint i = lastPeriod + 1; i <= period; i++) {
       holdings[_holder][i] = lastAmount;
     }
+    last[_holder] = period;
     return true;
   }
 
