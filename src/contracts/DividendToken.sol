@@ -1,15 +1,38 @@
 
 pragma solidity ^0.4.18;
 
-import './MintableToken.sol';
+import './HumanStandardToken.sol';
 import './SafeMath.sol';
 
-contract DividendToken is MintableToken {
+contract DividendToken is HumanStandardToken {
 
   uint256 internal period = 0;
   mapping (uint256 => uint256) internal dividends;
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
+  bool ended = false;  
+  mapping (address => bool) admins;  
+
+  modifier onlyLive() {
+    require(!ended);
+    _;
+  }
+
+  modifier onlyAdmin() {
+    require(msg.sender == owner || admins[msg.sender]);
+    _;
+  }
+
+  function addAdmin(address _adminAddr) onlyAdmin returns (bool success) {
+    admins[_adminAddr] = true;
+    return true;
+  }
+
+  function revokeAdmin(address _adminAddr) onlyAdmin returns (bool success) {
+    require(msg.sender != _adminAddr);
+    admins[_adminAddr] = false;
+    return true;
+  }
 
   function updateHoldings(address _holder) internal returns (bool success) {
     uint256 lastPeriod = last[_holder];
@@ -43,7 +66,7 @@ contract DividendToken is MintableToken {
     Transfer(msg.sender, _to, _value);
   }
 
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+  function transferFrom(address _from, address _to, uint256 _value) public onlyLive returns (bool) {
     require(_to != address(0));
     uint256 senderLastPeriod = last[_from];
     require(_value <= holdings[_from][senderLastPeriod]);
@@ -63,7 +86,7 @@ contract DividendToken is MintableToken {
     Transfer(msg.sender, _to, _value);
   }  
 
-  function payIn() public payable returns (bool success) {
+  function payIn() public onlyLive onlyAdmin payable returns (bool success) {
     dividends[period] = msg.value;
     period += 1;
     Paid(msg.sender, period - 1, msg.value);
@@ -118,7 +141,12 @@ contract DividendToken is MintableToken {
     return multiplier.div(totalSupply);    
   }
 
-  function buyBack() public returns (bool success);
+  function buyBack() public onlyLive payable returns (bool success) {
+    dividends[period] = msg.value;
+    period += 1;
+    Paid(msg.sender, period - 1, msg.value);
+    ended = true;
+  }
 
   event Paid(address indexed _sender, uint256 indexed _period, uint256 amount);
 
