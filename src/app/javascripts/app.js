@@ -9,11 +9,9 @@ require('ace-css/css/ace.css');
 require('font-awesome/css/font-awesome.css');
 
 // Import our contract artifacts and turn them into usable abstractions.
-import HumanTokenSol from '../../contracts/HumanStandardToken.sol'
-import CrowdsaleSol from '../../contracts/Crowdsale.sol'
+import MoriaTokenSol from '../../contracts/MoriaToken.sol'
 
-var HumanToken = contract(HumanTokenSol);
-var Crowdsale = contract(CrowdsaleSol);
+var MoriaToken = contract(MoriaTokenSol);
 
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
@@ -25,9 +23,8 @@ window.App = {
   start: function() {
     var self = this;
 
-    // Bootstrap the HumanToken abstraction for Use.
-    HumanToken.setProvider(web3.currentProvider);
-    Crowdsale.setProvider(web3.currentProvider);
+    // Bootstrap the MoriaToken abstraction for Use.
+    MoriaToken.setProvider(web3.currentProvider);
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
@@ -58,7 +55,7 @@ window.App = {
 
     var token;
     var decimals;
-    HumanToken.deployed().then(function(instance) {
+    MoriaToken.deployed().then(function(instance) {
       token = instance;
       return token.decimals();
     }).then(function(value) {
@@ -84,7 +81,7 @@ window.App = {
 
     var token;
     var decimals;
-    HumanToken.deployed().then(function(instance) {
+    MoriaToken.deployed().then(function(instance) {
       token = instance;
       return token.decimals();
     }).then(function(value) {
