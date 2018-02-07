@@ -10,8 +10,15 @@ contract DividendToken is HumanStandardToken {
   mapping (uint256 => uint256) internal dividends;
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
-  bool ended = false;  
-  mapping (address => bool) admins;  
+  uint256 buyBackTime;
+  bool ended = false;
+  
+  mapping (address => bool) admins;
+
+  modifier canBuyBack() {
+    require(now > buyBackTime);
+    _;
+  }
 
   modifier onlyLive() {
     require(!ended);
@@ -48,7 +55,7 @@ contract DividendToken is HumanStandardToken {
     return holdings[_owner][last[_owner]];
   }
 
-  function transfer(address _to, uint256 _value) public returns (bool) {
+  function transfer(address _to, uint256 _value) onlyLive public returns (bool) {
     require(_to != address(0));
     uint256 senderLastPeriod = last[msg.sender];
     require(_value <= holdings[msg.sender][senderLastPeriod]);
@@ -64,6 +71,8 @@ contract DividendToken is HumanStandardToken {
     holdings[msg.sender][period] = holdings[msg.sender][period].sub(_value);
     holdings[_to][period] = holdings[_to][period].add(_value);
     Transfer(msg.sender, _to, _value);
+
+    return true;
   }
 
   function transferFrom(address _from, address _to, uint256 _value) public onlyLive returns (bool) {
@@ -80,10 +89,12 @@ contract DividendToken is HumanStandardToken {
       updateHoldings(_to);
     }
 
-     holdings[msg.sender][period] = holdings[msg.sender][period].sub(_value);
+     holdings[msg.sender][period] = holdings[_from][period].sub(_value);
     holdings[_to][period] = holdings[_to][period].add(_value);
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     Transfer(msg.sender, _to, _value);
+
+    return true;
   }  
 
   function payIn() public onlyLive onlyAdmin payable returns (bool success) {
@@ -141,7 +152,7 @@ contract DividendToken is HumanStandardToken {
     return multiplier.div(totalSupply);    
   }
 
-  function buyBack() public onlyLive payable returns (bool success) {
+  function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool success) {
     dividends[period] = msg.value;
     period += 1;
     Paid(msg.sender, period - 1, msg.value);

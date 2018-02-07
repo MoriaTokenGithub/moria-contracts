@@ -6,7 +6,8 @@ pragma solidity ^0.4.18;
 contract MoriaToken is DividendToken {
 
   function MoriaToken (uint256 _initialAmount,
-                       uint8 _decimalUnits
+                       uint8 _decimalUnits,
+                       uint256 _buyBackTime
                       )  HumanStandardToken(
                         _initialAmount,
                         "Moria dividend token",
@@ -14,5 +15,6 @@ contract MoriaToken is DividendToken {
                         "MORIA"
                       ) public {
                         holdings[msg.sender][0] = _initialAmount;
+                        buyBackTime = _buyBackTime;
                       }  
 }
