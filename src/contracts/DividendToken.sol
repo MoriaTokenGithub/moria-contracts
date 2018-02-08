@@ -112,14 +112,14 @@ contract DividendToken is HumanStandardToken {
     }
     for (int i = claimedTo[msg.sender]; i <= period; i++) {
       if (holdings[msg.sender][i] > 0) {
-        uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
+        uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
         total += multiplier.div(totalSupply);
       }
     }
     claimedTo[msg.sender] = period+1;
     if(total > 0) {
-      msg.sender.transfer(toPay);
-      Claimed(msg.sender, _period, toPay);
+      msg.sender.transfer(total);
+      Claimed(msg.sender, i, total);
     }
     return total;
   }
