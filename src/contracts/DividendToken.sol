@@ -110,7 +110,7 @@ contract DividendToken is HumanStandardToken {
     if (last[msg.sender] < period) {
       updateHoldings(msg.sender);
     }
-    for (int i = claimedTo[msg.sender]; i <= period; i++) {
+    for (uint i = claimedTo[msg.sender]; i <= period; i++) {
       if (holdings[msg.sender][i] > 0) {
         uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
         total += multiplier.div(totalSupply);
