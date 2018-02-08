@@ -10,6 +10,7 @@ contract DividendToken is HumanStandardToken {
   mapping (uint256 => uint256) internal dividends;
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
+  mapping (address => uint256) internal claimedTo;
   uint256 buyBackTime;
   bool ended = false;
   
@@ -104,35 +105,54 @@ contract DividendToken is HumanStandardToken {
     return true;
   }
 
-  function claim(uint256 _period) public returns (uint256 amount) {
-    require(_period < period);
-    require(holdings[msg.sender][_period] > 0);
-
-    uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
-    uint256 toPay = multiplier.div(totalSupply);
-
-    holdings[msg.sender][_period] = 0;
-    msg.sender.transfer(toPay);
-    Claimed(msg.sender, _period, toPay);
-    return toPay;
-  }
-
-  function claimAll() public returns (uint256 amount)
-  {
-    uint256 claimed = 0;
-    for (uint i = 0; i < period; i++) {
-      if (holdings[msg.sender][i] > 0) {
-        uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
-        uint256 toPay = multiplier.div(totalSupply);
-
-        holdings[msg.sender][i] = 0;
-        claimed += toPay;
-      }
-       msg.sender.transfer(toPay);
-      Claimed(msg.sender, period-1, claimed);
-      return claimed;
+  function claimDividends() public returns (uint256 amount) {
+    uint256 total = 0;
+    if (last[msg.sender] < period) {
+      updateHoldings(msg.sender);
     }
+    for (int i = claimedTo[msg.sender]; i <= period; i++) {
+      if (holdings[msg.sender][i] > 0) {
+        uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
+        total += multiplier.div(totalSupply);
+      }
+    }
+    claimedTo[msg.sender] = period+1;
+    if(total > 0) {
+      msg.sender.transfer(toPay);
+      Claimed(msg.sender, _period, toPay);
+    }
+    return total;
   }
+
+  // function claim(uint256 _period) public returns (uint256 amount) {
+  //   require(_period < period);
+  //   require(holdings[msg.sender][_period] > 0);
+
+  //   uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
+  //   uint256 toPay = multiplier.div(totalSupply);
+
+  //   holdings[msg.sender][_period] = 0;
+  //   msg.sender.transfer(toPay);
+  //   Claimed(msg.sender, _period, toPay);
+  //   return toPay;
+  // }
+
+  // function claimAll() public returns (uint256 amount)
+  // {
+  //   uint256 claimed = 0;
+  //   for (uint i = 0; i < period; i++) {
+  //     if (holdings[msg.sender][i] > 0) {
+  //       uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
+  //       uint256 toPay = multiplier.div(totalSupply);
+
+  //       holdings[msg.sender][i] = 0;
+  //       claimed += toPay;
+  //     }
+  //     msg.sender.transfer(toPay);
+  //   }
+  //   Claimed(msg.sender, period-1, claimed);
+  //   return claimed;    
+  // }
 
   function outstanding() public view returns (uint256 amount) {
     uint256 total = 0;
