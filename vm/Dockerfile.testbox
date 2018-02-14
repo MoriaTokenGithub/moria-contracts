@@ -1,12 +1,22 @@
-FROM node:7.8-alpine
+# FROM node:7.8-alpine
 
+# WORKDIR /src/
+
+# RUN apk add -t .gyp --no-cache git python g++ make \
+#    && npm install truffle \
+#    && npm install babel-register \
+#    && npm install babel-preset-env \
+#    && apk del .gyp
+#
+FROM node:7.8
+
+ENV TMPDIR /tmp/
 WORKDIR /src/
 
-RUN apk add -t .gyp --no-cache git python g++ make \
-    && npm install truffle \
-    && npm install babel-register \
-    && npm install babel-preset-env \
-    && apk del .gyp
+COPY ./src/package.json /src/
+COPY ./lib/ /src/lib/
+     
+RUN npm install
 
 ENTRYPOINT ["/src/node_modules/.bin/truffle"]
 CMD ["test"]

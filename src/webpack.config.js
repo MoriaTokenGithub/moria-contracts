@@ -81,6 +81,14 @@ module.exports = {
             },            
         ],
         noParse: /lie\.js|[\s\S]*.(svg|ttf|eot)$/
+    },
+  devServer: {
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/api\/balance/, to: '/app/dummy-balance.html' },
+        { from: /^\/api\/total/, to: '/app/dummy-total.html' },
+      ]
     }  
+  }
 }
 
