@@ -120,6 +120,13 @@ function command_down {
     printf "${GREEN}It's too bad she won't live, but then again who does?${NC}"
 }
 
+
+function command_build {
+    printf "${GREEN}Rebuilding docker instances${NC}\n"
+    build;
+    printf "${GREEN}Done${NC}\n"
+}
+
 # -----------------------------------------------------------------
 # -----------------------------------------------------------------
 if [ -n "$(type -t ${command})" ] && [ "$(type -t ${command})" = function ]; then 
