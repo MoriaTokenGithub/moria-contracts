@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.15;
 
 import './HumanStandardToken.sol';
 import './SafeMath.sol';
@@ -52,7 +52,7 @@ contract DividendToken is HumanStandardToken {
     return true;
   }
 
-  function balanceOf(address _owner) public view returns (uint256 balance) {
+  function balanceOf(address _owner) public returns (uint256 balance) {
     return holdings[_owner][last[_owner]];
   }
 
@@ -154,7 +154,7 @@ contract DividendToken is HumanStandardToken {
   //   return claimed;    
   // }
 
-  function outstanding() public view returns (uint256 amount) {
+  function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
     for (uint i = 0; i < period; i++) {
       uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
@@ -164,7 +164,7 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  function outstandingAt(uint256 _period) public view returns (uint256 amount) {
+  function outstandingAt(uint256 _period) public returns (uint256 amount) {
     if (holdings[msg.sender][_period] == 0) {
       return 0;
     }

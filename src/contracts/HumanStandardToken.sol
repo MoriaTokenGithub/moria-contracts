@@ -13,7 +13,7 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 import "./MintableToken.sol";
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.15;
 
 contract HumanStandardToken is MintableToken {
 

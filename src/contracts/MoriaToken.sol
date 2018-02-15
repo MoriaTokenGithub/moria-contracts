@@ -1,7 +1,7 @@
 import "./HumanStandardToken.sol";
 import "./DividendToken.sol";
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.15;
 
 contract MoriaToken is DividendToken {
 
