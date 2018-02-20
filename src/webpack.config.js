@@ -87,6 +87,7 @@ module.exports = {
       rewrites: [
         { from: /^\/api\/balance/, to: '/app/dummy-balance.html' },
         { from: /^\/api\/total/, to: '/app/dummy-total.html' },
+        { from: /^\/api\/dividends/, to: '/app/dummy-total.html' },
       ]
     }  
   }
