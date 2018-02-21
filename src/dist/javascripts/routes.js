@@ -1,7 +1,12 @@
 'use strict';
 
+var request = require('request');
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 var api = require("./api.js");
 api.init();
@@ -40,6 +45,21 @@ app.post('/api/pay/', function (req, res) {
   var params = req.body;
   var address = params['address'];
   var callback = params['callback'];
+  var created = Date.now;
+  var completed = 0;
+
+  api.payOutstandingDividends(address, function (value) {
+    console.log(value);
+    completed = Date.now;
+  }).then(function (result) {
+    request.post(address, { json: { "success": value,
+        "completed": completed,
+        "created": created } }, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        console.log(body);
+      }
+    });
+  });
 });
 
 app.get('/api/mint/:address/:amount', function (req, res) {
@@ -50,6 +70,11 @@ app.get('/api/mint/:address/:amount', function (req, res) {
   }).then(function (result) {
     res.send(result);
   });
+});
+
+app.post('/test/callback', function (req, res) {
+  console.log(req.body);
+  res.send(req.body["poo"]);
 });
 
 app.post('/api/mint/:address/:amount', function (req, res) {});

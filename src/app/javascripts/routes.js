@@ -1,5 +1,10 @@
+const request = require('request');
 const express = require('express')
+const bodyParser = require('body-parser');
 const app = express()
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
 
 var api = require("./api.js")
 api.init();
@@ -30,7 +35,24 @@ app.post('/api/pay/', (req, res) => {
   var params = req.body;
   var address = params['address'];
   var callback = params['callback'];
-});
+  var created = Date.now;
+  var completed = 0;
+
+  api.payOutstandingDividends(address, function(value) {
+    console.log(value);
+    completed = Date.now;
+  }).then(function(result) {
+    request.post(address,
+                 {json: {"success" : value,
+                         "completed" : completed,
+                         "created" : created}},
+                 function (error, response, body) {
+                   if (!error && response.statusCode == 200) {
+                     console.log(body)
+                   }
+                 });
+  })});
+
 
 app.get('/api/mint/:address/:amount', (req, res) => {
   var address = req.params["address"];
@@ -39,6 +61,11 @@ app.get('/api/mint/:address/:amount', (req, res) => {
     console.log("minted = " + minted)}).then(function(result) {
       res.send(result);
     })});
+
+app.post('/test/callback', (req, res) => {
+  console.log(req.body);
+  res.send(req.body["poo"]);
+});
 
 app.post('/api/mint/:address/:amount', (req, res) => {});
 
