@@ -1,0 +1,13 @@
+FROM node:7.8
+
+ENV TMPDIR /tmp/
+WORKDIR /src/
+
+COPY ./src/package.json /src/
+COPY ./lib/ /src/lib/
+     
+RUN npm install
+
+ENTRYPOINT [""]
+
+CMD npm run build-api && npm run start-api

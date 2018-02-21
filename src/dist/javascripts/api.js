@@ -14,7 +14,11 @@ var _MoriaToken2 = _interopRequireDefault(_MoriaToken);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://localhost:8545"));
+console.log(__dirname);
+
+
+// needs to get env
+var web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://testrpc:8545"));
 var MoriaToken = (0, _truffleContract2.default)(_MoriaToken2.default);
 MoriaToken.setProvider(web3.currentProvider);
 
@@ -24,12 +28,12 @@ var account;
 var setAccounts = function setAccounts() {
   web3.eth.getAccounts(function (err, accs) {
     if (err != null) {
-      alert("There was an error fetching your accounts.");
+      console.log("There was an error fetching your accounts." + err);
       return;
     }
 
     if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+      console.log("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
       return;
     }
 
@@ -72,8 +76,6 @@ module.exports = {
 
   getBalance: function getBalance(address) {
 
-    setAccounts();
-
     var token;
     var decimals;
 
@@ -111,15 +113,12 @@ module.exports = {
   },
 
   getOutstandingDividends: function getOutstandingDividends(address) {
-    setAccounts();
-
     return MoriaToken.deployed().then(function (instance) {
       return instance.outstandingFor.call(address, { from: account });
     });
   },
 
   payOutstandingDividends: function payOutstandingDividends(address, callback) {
-    setAccounts();
     var token;
     return MoriaToken.deployed().then(function (instance) {
       return instance.claimDividendsFor(address, { from: account });
@@ -130,8 +129,6 @@ module.exports = {
   },
 
   mintTokens: function mintTokens(address, amount, callback) {
-    setAccounts();
-
     var token;
     var decimals;
     return MoriaToken.deployed().then(function (instance) {

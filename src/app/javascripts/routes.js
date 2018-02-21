@@ -26,6 +26,12 @@ app.get('/api/pay/:address', (req, res) =>
           res.send(result);
         }));
 
+app.post('/api/pay/', (req, res) => {
+  var params = req.body;
+  var address = params['address'];
+  var callback = params['callback'];
+});
+
 app.get('/api/mint/:address/:amount', (req, res) => {
   var address = req.params["address"];
   var amount = req.params["amount"];
@@ -33,5 +39,7 @@ app.get('/api/mint/:address/:amount', (req, res) => {
     console.log("minted = " + minted)}).then(function(result) {
       res.send(result);
     })});
+
+app.post('/api/mint/:address/:amount', (req, res) => {});
 
 app.listen(3000, () => console.log('API active on port 3000!'))

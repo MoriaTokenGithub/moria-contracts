@@ -2,9 +2,11 @@ import { default as Web3} from 'web3';
 
 import { default as contract } from 'truffle-contract'
 
+console.log(__dirname);
 import MoriaTokenSol from '../../build/contracts/MoriaToken.json'
 
-var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+// needs to get env
+var web3 = new Web3(new Web3.providers.HttpProvider("http://testrpc:8545"));
 var MoriaToken = contract(MoriaTokenSol);
 MoriaToken.setProvider(web3.currentProvider);
 
@@ -14,7 +16,7 @@ var account;
 var setAccounts = function() {
   web3.eth.getAccounts(function(err, accs) {
     if (err != null) {
-      console.log("There was an error fetching your accounts.");
+      console.log("There was an error fetching your accounts." + err);
       return;
     }
     
