@@ -8,17 +8,20 @@
     "webpack:w": "export TMPDIR=/tmp; `npm bin`/webpack --watch",
     "webpack:dev": "export TMPDIR=/tmp; `npm bin`/webpack-dev-server --host 0.0.0.0 --hot --inline --watch-poll --port 8080",
     "build": "webpack",
-    "start": "npm run webpack:dev"
+    "build-api": "truffle compile && babel app -s -D -d dist --presets es2015,stage-0",
+    "start": "npm run webpack:dev",
+    "start-api": "node dist/javascripts/routes.js"
   },
   "author": "Douglas von Kohorn",
   "license": "MIT",
   "dependencies": {
+    "express": "^4.16.2",
     "jquery": "^3.2.1",
     "truffle": "^4.0.1"
   },
   "devDependencies": {
     "ace-css": "^1.1.0",
-    "babel-cli": "^6.22.2",
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.22.1",
     "babel-eslint": "^6.1.2",
     "babel-loader": "^6.2.10",
@@ -60,7 +63,7 @@
     "style-loader": "^0.13.1",
     "truffle-contract": "^2.0.3",
     "truffle-core": "^3.4.8",
-    "truffle-solidity-loader": "file:./lib/truffle-solidity-loader",
+    "truffle-solidity-loader": "file:../lib/truffle-solidity-loader",
     "url-loader": "^0.5.9",
     "web3": "^0.20.1",
     "webpack": "^2.2.1",
