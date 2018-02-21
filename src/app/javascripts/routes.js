@@ -64,7 +64,7 @@ app.get('/api/mint/:address/:amount', (req, res) => {
 
 app.post('/test/callback', (req, res) => {
   console.log(req.body);
-  res.send(req.body["poo"]);
+  res.send(req.body);
 });
 
 app.post('/api/mint/:address/:amount', (req, res) => {});
