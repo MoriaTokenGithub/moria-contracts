@@ -14,12 +14,12 @@ var account;
 var setAccounts = function() {
   web3.eth.getAccounts(function(err, accs) {
     if (err != null) {
-      alert("There was an error fetching your accounts.");
+      console.log("There was an error fetching your accounts.");
       return;
     }
     
     if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+      console.log("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
       return;
     }
     
@@ -61,8 +61,6 @@ module.exports = {
   },
 
   getBalance : function(address) {
-
-    setAccounts();
     
     var token;
     var decimals;
@@ -101,15 +99,12 @@ module.exports = {
   },
 
   getOutstandingDividends : function(address) {
-    setAccounts();
-
     return MoriaToken.deployed().then(function(instance) {
       return instance.outstandingFor.call(address, {from: account})
     })
   },
 
   payOutstandingDividends : function(address, callback) {
-    setAccounts();
     var token;
     return MoriaToken.deployed().then(function(instance) {
       return instance.claimDividendsFor(address, {from: account});
@@ -120,8 +115,6 @@ module.exports = {
   },
 
   mintTokens : function(address, amount, callback) {
-    setAccounts();
-
     var token;
     var decimals;
     return MoriaToken.deployed().then(function(instance) {
