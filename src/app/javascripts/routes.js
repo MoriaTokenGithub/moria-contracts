@@ -35,22 +35,27 @@ app.post('/api/pay/', (req, res) => {
   var params = req.body;
   var address = params['address'];
   var callback = params['callback'];
-  var created = Date.now;
+  var created = Date.now();
   var completed = 0;
 
   api.payOutstandingDividends(address, function(value) {
+    console.log("pay dividend callback");
     console.log(value);
-    completed = Date.now;
+    completed = Date.now();
   }).then(function(result) {
-    request.post(address,
-                 {json: {"success" : value,
-                         "completed" : completed,
-                         "created" : created}},
+    console.log("posting to: " + callback);
+    request.post(callback,
+                 {body: {
+                   "completed" :  completed,
+                   "success" : result,
+                   "created" :  created},
+                  json: true},
                  function (error, response, body) {
                    if (!error && response.statusCode == 200) {
                      console.log(body)
                    }
                  });
+    res.send("OK!");
   })});
 
 
@@ -63,7 +68,7 @@ app.get('/api/mint/:address/:amount', (req, res) => {
     })});
 
 app.post('/test/callback', (req, res) => {
-  console.log(req.body);
+  console.log("test callback...");
   res.send(req.body);
 });
 

@@ -124,7 +124,7 @@ module.exports = {
       return instance.claimDividendsFor(address, { from: account });
     }).then(function (value) {
       callback(value);
-      return value;
+      return true;
     });
   },
 
