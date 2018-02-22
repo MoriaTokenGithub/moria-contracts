@@ -3,6 +3,24 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const app = express()
 
+var lockExpiry = 1000 * 20; // 20 seconds
+var paymentLock = {};
+
+var lockAddress = function(address) {
+  paymentLock[address] = Date.now() + lockExpiry;
+}
+
+var unlockAddress = function(address) {
+  paymentLock[address] = 0;
+}
+
+var isLocked = function(address) {
+  if (paymentLock[address] == undefined) {
+    return false;
+  }
+  return paymentLock[address] >= Date.now();
+}
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json())
 
@@ -26,10 +44,15 @@ app.get('/api/dividends/:address', (req, res) =>
           res.send({"owed" : result});
         }));
 
-app.get('/api/pay/:address', (req, res) =>
-        api.payOutstandingDividends(req.params["address"], function (value) {console.log(value);} ).then(function(result) {
-          res.send(result);
-        }));
+app.get('/api/pay/:address', (req, res) => {
+  if(isLocked(req.params["address"])) {
+    
+  }
+  api.payOutstandingDividends(req.params["address"], function (value) {console.log(value);} ).then(function(result) {
+    res.send(result);
+  })
+}
+       );
 
 app.post('/api/pay/', (req, res) => {
   var params = req.body;
@@ -37,6 +60,8 @@ app.post('/api/pay/', (req, res) => {
   var callback = params['callback'];
   var created = Date.now();
   var completed = 0;
+
+  console.log("address = " + address + " callback = " + callback);
 
   api.payOutstandingDividends(address, function(value) {
     console.log("pay dividend callback");

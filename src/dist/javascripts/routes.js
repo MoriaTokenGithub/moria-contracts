@@ -5,6 +5,24 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 
+var lockExpiry = 1000 * 20; // 20 seconds
+var paymentLock = {};
+
+var lockAddress = function lockAddress(address) {
+  paymentLock[address] = Date.now() + lockExpiry;
+};
+
+var unlockAddress = function unlockAddress(address) {
+  paymentLock[address] = 0;
+};
+
+var isLocked = function isLocked(address) {
+  if (paymentLock[address] == undefined) {
+    return false;
+  }
+  return paymentLock[address] >= Date.now();
+};
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -34,7 +52,8 @@ app.get('/api/dividends/:address', function (req, res) {
 });
 
 app.get('/api/pay/:address', function (req, res) {
-  return api.payOutstandingDividends(req.params["address"], function (value) {
+  if (isLocked(req.params["address"])) {}
+  api.payOutstandingDividends(req.params["address"], function (value) {
     console.log(value);
   }).then(function (result) {
     res.send(result);
@@ -48,13 +67,15 @@ app.post('/api/pay/', function (req, res) {
   var created = Date.now();
   var completed = 0;
 
+  console.log("address = " + address + " callback = " + callback);
+
   api.payOutstandingDividends(address, function (value) {
     console.log("pay dividend callback");
     console.log(value);
     completed = Date.now();
   }).then(function (result) {
     console.log("posting to: " + callback);
-    request.post(callback, { body: { //
+    request.post(callback, { body: {
         "completed": completed,
         "success": result,
         "created": created },
@@ -78,8 +99,7 @@ app.get('/api/mint/:address/:amount', function (req, res) {
 });
 
 app.post('/test/callback', function (req, res) {
-  console.log("test callback " + Date.now());
-  console.log(req.body["completed"]);
+  console.log("test callback...");
   res.send(req.body);
 });
 
