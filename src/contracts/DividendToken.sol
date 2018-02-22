@@ -1,5 +1,5 @@
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.15;
 
 import './HumanStandardToken.sol';
 import './SafeMath.sol';
@@ -52,8 +52,15 @@ contract DividendToken is HumanStandardToken {
     return true;
   }
 
-  function balanceOf(address _owner) public view returns (uint256 balance) {
+  function balanceOf(address _owner) public returns (uint256 balance) {
     return holdings[_owner][last[_owner]];
+  }
+
+  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    totalSupply = totalSupply.add(_amount);
+    holdings[_to][period] = holdings[_to][period].add(_amount);
+    Mint(_to, _amount);
+    Transfer(address(0), _to, _amount);
   }
 
   function transfer(address _to, uint256 _value) onlyLive public returns (bool) {
@@ -90,11 +97,11 @@ contract DividendToken is HumanStandardToken {
       updateHoldings(_to);
     }
 
-     holdings[msg.sender][period] = holdings[_from][period].sub(_value);
-    holdings[_to][period] = holdings[_to][period].add(_value);
+    holdings[_from][period] = holdings[_from][period].sub(_value);
+    holdings[_from][period] = holdings[_to][period].add(_value);
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     Transfer(msg.sender, _to, _value);
-
+    
     return true;
   }  
 
@@ -124,37 +131,36 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  // function claim(uint256 _period) public returns (uint256 amount) {
-  //   require(_period < period);
-  //   require(holdings[msg.sender][_period] > 0);
+  function claimDividendsFor(address _address) onlyOwner public returns (uint256 amount) {
+    uint256 total = 0;
+    if (last[msg.sender] < period) {
+      updateHoldings(_address);
+    }
+    for (uint i = claimedTo[_address]; i <= period; i++) {
+      if (holdings[_address][i] > 0) {
+        uint256 multiplier = dividends[i].mul(holdings[_address][i]);
+        total += multiplier.div(totalSupply);
+      }
+    }
+    claimedTo[_address] = period+1;
+    if(total > 0) {
+      _address.transfer(total);
+      Claimed(_address, i, total);
+    }
+    return total;
+  }
+  
+  function outstandingFor(address _address) public returns (uint256 amount) {
+    uint256 total = 0;
+    for (uint i = 0; i < period; i++) {
+      uint256 multiplier = dividends[i].mul(holdings[_address][i]);
+      uint256 owed = multiplier.div(totalSupply);
+      total += owed;
+    }
+    return total;
+  }
 
-  //   uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
-  //   uint256 toPay = multiplier.div(totalSupply);
-
-  //   holdings[msg.sender][_period] = 0;
-  //   msg.sender.transfer(toPay);
-  //   Claimed(msg.sender, _period, toPay);
-  //   return toPay;
-  // }
-
-  // function claimAll() public returns (uint256 amount)
-  // {
-  //   uint256 claimed = 0;
-  //   for (uint i = 0; i < period; i++) {
-  //     if (holdings[msg.sender][i] > 0) {
-  //       uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
-  //       uint256 toPay = multiplier.div(totalSupply);
-
-  //       holdings[msg.sender][i] = 0;
-  //       claimed += toPay;
-  //     }
-  //     msg.sender.transfer(toPay);
-  //   }
-  //   Claimed(msg.sender, period-1, claimed);
-  //   return claimed;    
-  // }
-
-  function outstanding() public view returns (uint256 amount) {
+  function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
     for (uint i = 0; i < period; i++) {
       uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
@@ -164,7 +170,15 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  function outstandingAt(uint256 _period) public view returns (uint256 amount) {
+  function outstandingAtFor(uint _period, address _address) public returns (uint256 amount) {
+    if (holdings[_address][_period] == 0) {
+      return 0;
+    }
+    uint256 multiplier = dividends[_period].mul(holdings[_address][_period]);
+    return multiplier.div(totalSupply);    
+  }
+
+  function outstandingAt(uint256 _period) public returns (uint256 amount) {
     if (holdings[msg.sender][_period] == 0) {
       return 0;
     }
