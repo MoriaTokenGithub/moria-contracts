@@ -117,13 +117,13 @@ contract DividendToken is HumanStandardToken {
     if (last[msg.sender] < period) {
       updateHoldings(msg.sender);
     }
-    for (uint i = claimedTo[msg.sender]; i <= period; i++) {
+    for (uint i = claimedTo[msg.sender]; i < period; i++) {
       if (holdings[msg.sender][i] > 0) {
         uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
         total += multiplier.div(totalSupply);
       }
     }
-    claimedTo[msg.sender] = period+1;
+    claimedTo[msg.sender] = period;
     if(total > 0) {
       msg.sender.transfer(total);
       Claimed(msg.sender, i, total);
@@ -136,13 +136,13 @@ contract DividendToken is HumanStandardToken {
     if (last[msg.sender] < period) {
       updateHoldings(_address);
     }
-    for (uint i = claimedTo[_address]; i <= period; i++) {
+    for (uint i = claimedTo[_address]; i < period; i++) {
       if (holdings[_address][i] > 0) {
         uint256 multiplier = dividends[i].mul(holdings[_address][i]);
         total += multiplier.div(totalSupply);
       }
     }
-    claimedTo[_address] = period+1;
+    claimedTo[_address] = period;
     if(total > 0) {
       _address.transfer(total);
       Claimed(_address, i, total);
@@ -152,7 +152,7 @@ contract DividendToken is HumanStandardToken {
   
   function outstandingFor(address _address) public returns (uint256 amount) {
     uint256 total = 0;
-    for (uint i = 0; i < period; i++) {
+    for (uint i = claimedTo[_address]; i < period; i++) {
       uint256 multiplier = dividends[i].mul(holdings[_address][i]);
       uint256 owed = multiplier.div(totalSupply);
       total += owed;
@@ -162,7 +162,7 @@ contract DividendToken is HumanStandardToken {
 
   function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
-    for (uint i = 0; i < period; i++) {
+    for (uint i = calimedTp[msg.sender]; i < period; i++) {
       uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
       uint256 owed = multiplier.div(totalSupply);
       total += owed;
