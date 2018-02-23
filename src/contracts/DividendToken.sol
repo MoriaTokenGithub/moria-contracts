@@ -153,7 +153,13 @@ contract DividendToken is HumanStandardToken {
   function outstandingFor(address _address) public returns (uint256 amount) {
     uint256 total = 0;
     for (uint i = claimedTo[_address]; i < period; i++) {
-      uint256 multiplier = dividends[i].mul(holdings[_address][i]);
+      uint256 holds;
+      if(last[_address] < i) {
+        holds = holdings[_address][last[_address]];
+      } else {
+        holds = holdings[_address][i];
+      }
+      uint256 multiplier = dividends[i].mul(holds);
       uint256 owed = multiplier.div(totalSupply);
       total += owed;
     }
@@ -163,7 +169,12 @@ contract DividendToken is HumanStandardToken {
   function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
     for (uint i = calimedTp[msg.sender]; i < period; i++) {
-      uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
+       if(last[msg.sender] < i) {
+        holds = holdings[msg.sender][last[_address]];
+      } else {
+        holds = holdings[msg.sender][i];
+      }
+      uint256 multiplier = dividends[i].mul(holds);
       uint256 owed = multiplier.div(totalSupply);
       total += owed;
     }
