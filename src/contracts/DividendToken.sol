@@ -170,22 +170,6 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  function outstandingAtFor(uint _period, address _address) public returns (uint256 amount) {
-    if (holdings[_address][_period] == 0) {
-      return 0;
-    }
-    uint256 multiplier = dividends[_period].mul(holdings[_address][_period]);
-    return multiplier.div(totalSupply);    
-  }
-
-  function outstandingAt(uint256 _period) public returns (uint256 amount) {
-    if (holdings[msg.sender][_period] == 0) {
-      return 0;
-    }
-    uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
-    return multiplier.div(totalSupply);    
-  }
-
   function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool success) {
     dividends[period] = msg.value;
     period += 1;
