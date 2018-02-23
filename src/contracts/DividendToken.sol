@@ -131,24 +131,24 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  function claimDividendsFor(address _address) onlyOwner public returns (uint256 amount) {
-    uint256 total = 0;
-    if (last[msg.sender] < period) {
-      updateHoldings(_address);
-    }
-    for (uint i = claimedTo[_address]; i < period; i++) {
-      if (holdings[_address][i] > 0) {
-        uint256 multiplier = dividends[i].mul(holdings[_address][i]);
-        total += multiplier.div(totalSupply);
-      }
-    }
-    claimedTo[_address] = period;
-    if(total > 0) {
-      _address.transfer(total);
-      Claimed(_address, i, total);
-    }
-    return total;
-  }
+  // function claimDividendsFor(address _address) onlyOwner public returns (uint256 amount) {
+  //   uint256 total = 0;
+  //   if (last[msg.sender] < period) {
+  //     updateHoldings(_address);
+  //   }
+  //   for (uint i = claimedTo[_address]; i < period; i++) {
+  //     if (holdings[_address][i] > 0) {
+  //       uint256 multiplier = dividends[i].mul(holdings[_address][i]);
+  //       total += multiplier.div(totalSupply);
+  //     }
+  //   }
+  //   claimedTo[_address] = period;
+  //   if(total > 0) {
+  //     _address.transfer(total);
+  //     Claimed(_address, i, total);
+  //   }
+  //   return total;
+  // }
   
   function outstandingFor(address _address) public returns (uint256 amount) {
     uint256 total = 0;
