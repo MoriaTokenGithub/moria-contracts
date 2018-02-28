@@ -1,4 +1,3 @@
-
 pragma solidity ^0.4.15;
 
 import './HumanStandardToken.sol';
@@ -6,11 +5,11 @@ import './SafeMath.sol';
 
 contract DividendToken is HumanStandardToken {
 
-  uint256 internal period = 0;
-  mapping (uint256 => uint256) internal dividends;
+  uint256 public period = 0;
+  mapping (uint256 => uint256) public dividends;
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
-  mapping (address => uint256) internal claimedTo;
+  mapping (address => uint256) public claimedTo;
   uint256 buyBackTime;
   bool ended = false;
   
@@ -111,7 +110,7 @@ contract DividendToken is HumanStandardToken {
     Paid(msg.sender, period - 1, msg.value);
     return true;
   }
-
+  
   function claimDividends() public returns (uint256 amount) {
     uint256 total = 0;
     if (last[msg.sender] < period) {

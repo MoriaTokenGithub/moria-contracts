@@ -99,4 +99,16 @@ app.post('/test/callback', (req, res) => {
 
 app.post('/api/mint/:address/:amount', (req, res) => {});
 
+app.get('/api/history/:address/', (req, res) => {
+  api.dividendHistory(req.params["address"]).then(function(history) {
+    historyObj = [];
+    for(int i = 0; i < history.length; i++) {
+      historyObj.add({'id' : i,
+                      'amount' : 0,
+                      'wallet' : address});
+    }
+    return historyObj;
+  })});
+});
+
 app.listen(3000, () => console.log('API active on port 3000!'))

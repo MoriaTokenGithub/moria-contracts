@@ -130,5 +130,24 @@ module.exports = {
       callback(value);
       return value;
     });    
+  },
+
+  dividendHistory : function(address) {
+    var token;
+    var period;
+    var dividends;
+
+    return MoriaToken.deployed().then(function(instance) {
+      token = instance;
+      return token.period();
+    }).then(function(_period) {
+      period = _period;
+      return token.dividends();
+    }).then(function(_dividends) {
+      dividends = _dividends;
+      return token.claimedTo()[address];
+    }).then(function(_claimedTo) {
+      return dividends.slice(0, _claimedTo);
+    });
   }
 }
