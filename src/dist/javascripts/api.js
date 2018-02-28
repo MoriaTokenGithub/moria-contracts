@@ -142,6 +142,29 @@ module.exports = {
       callback(value);
       return value;
     });
-  }
+  },
+
+  dividendHistory: function dividendHistory(address) {
+    var token;
+    var period;
+    var dividends;
+
+    return MoriaToken.deployed().then(function (instance) {
+      token = instance;
+      return token.period();
+    }).then(function (_period) {
+      period = _period;
+      console.log('history to period: ' + period);
+      return token.dividendHistory.call({ from: account });
+    }).then(function (_dividends) {
+      dividends = _dividends;
+      return token.claimedTo(address);
+    }).then(function (_claimedTo) {
+      console.log("claimed to: " + _claimedTo);
+      return dividends.slice(0, _claimedTo);
+    });
+  },
+
+  payDividend: function payDividend(amount) {}
 };
 //# sourceMappingURL=api.js.map

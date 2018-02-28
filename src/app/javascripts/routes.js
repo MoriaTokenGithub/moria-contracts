@@ -101,14 +101,17 @@ app.post('/api/mint/:address/:amount', (req, res) => {});
 
 app.get('/api/history/:address/', (req, res) => {
   api.dividendHistory(req.params["address"]).then(function(history) {
-    historyObj = [];
-    for(int i = 0; i < history.length; i++) {
+    var historyObj = [];
+    console.log('constructing history...');
+    for(var i = 0; i < history.length; i++) {
+      console.log('adding history data');
       historyObj.add({'id' : i,
                       'amount' : 0,
                       'wallet' : address});
     }
-    return historyObj;
-  })});
+    console.log(historyObj);
+    res.send(historyObj);
+  });
 });
 
 app.listen(3000, () => console.log('API active on port 3000!'))

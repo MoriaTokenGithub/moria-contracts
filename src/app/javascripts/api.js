@@ -142,12 +142,18 @@ module.exports = {
       return token.period();
     }).then(function(_period) {
       period = _period;
-      return token.dividends();
+      console.log('history to period: ' + period);
+      return token.dividendHistory.call({from: account});
     }).then(function(_dividends) {
       dividends = _dividends;
-      return token.claimedTo()[address];
+      return token.claimedTo(address);
     }).then(function(_claimedTo) {
+      console.log("claimed to: " + _claimedTo);
       return dividends.slice(0, _claimedTo);
     });
+  },
+
+  payDividend : function(amount) {
+    
   }
 }
