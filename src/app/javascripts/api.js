@@ -108,17 +108,19 @@ module.exports = {
   },
 
   payOutstandingDividends : function(address, callback) {
+    console.log("paying dividends for " + address);
     var token;
 
     return MoriaToken.deployed().then(function(instance) {
       token = instance;
       console.log(web3.eth.getBalance(instance.address).toString());
-      return instance.claimDividendsFor.estimateGas(address);
+      return 150000;//instance.claimDividendsFor.estimateGas(address, {from: account});
     }).then(function(gasCost) {
       console.log("gas cost = " + gasCost);
       return token.claimDividendsFor(address, {from: account, gas: gasCost});
     }).then(function(value) {
       callback(value);
+      return value;
     })
   },
 
