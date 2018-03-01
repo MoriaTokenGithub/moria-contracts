@@ -151,28 +151,8 @@ contract DividendToken is HumanStandardToken {
   
   function outstandingFor(address _address) public returns (uint256 amount) {
     uint256 total = 0;
+    uint256 holds = 0;
     for (uint i = claimedTo[_address]; i < period; i++) {
-      uint256 multiplier = dividends[i].mul(holdings[_address][i]);
-      uint256 owed = multiplier.div(totalSupply);
-      total += owed;
-    }
-    return total;
-  }
-
-  function outstanding() public returns (uint256 amount) {
-    uint256 total = 0;
-    for (uint i = claimedTo[msg.sender]; i < period; i++) {
-      uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
-      uint256 owed = multiplier.div(totalSupply);
-      total += owed;
-    }
-    return total;
-  }
-
-  function outstandingFor(address _address) public returns (uint256 amount) {
-    uint256 total = 0;
-    for (uint i = claimedTo[_address]; i < period; i++) {
-      uint256 holds;
       if(last[_address] < i) {
         holds = holdings[_address][last[_address]];
       } else {
@@ -187,9 +167,10 @@ contract DividendToken is HumanStandardToken {
 
   function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
-    for (uint i = calimedTo[msg.sender]; i < period; i++) {
+    uint256 holds = 0;
+    for (uint i = claimedTo[msg.sender]; i < period; i++) {
        if(last[msg.sender] < i) {
-        holds = holdings[msg.sender][last[_address]];
+        holds = holdings[msg.sender][last[msg.sender]];
       } else {
         holds = holdings[msg.sender][i];
       }
