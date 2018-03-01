@@ -196,6 +196,15 @@ contract DividendToken is HumanStandardToken {
     return divs;
   }
 
+  function dividendHistoryFor(address _address) public returns (uint256[]) {
+    uint256[] memory divs = new uint[](claimedTo[_address]);
+    for(uint i = 0; i < claimedTo[_address]; i++) {
+      uint256 multiplier = dividends[i].mul(holdings[_address][i]);
+      divs[i] = multiplier.div(totalSupply);
+    }
+    return divs;
+  }
+
   event Paid(address indexed _sender, uint256 indexed _period, uint256 amount);
 
   event Claimed(address indexed _recipient, uint256 indexed _period, uint256 _amount);

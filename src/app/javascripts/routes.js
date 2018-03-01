@@ -51,8 +51,7 @@ app.get('/api/pay/:address', (req, res) => {
   api.payOutstandingDividends(req.params["address"], function (value) {console.log(value);} ).then(function(result) {
     res.send(result);
   })
-}
-       );
+});
 
 app.post('/api/pay/', (req, res) => {
   var params = req.body;
@@ -111,9 +110,11 @@ app.get('/api/history/:address/', (req, res) => {
     console.log('constructing history...');
     for(var i = 0; i < history.length; i++) {
       console.log('adding history data');
-      historyObj.add({'id' : i,
-                      'amount' : 0,
-                      'wallet' : address});
+      historyObj.push({'id' : i,
+                       'amount' : history[i],
+                       'date' : Date.now(),
+                       'withdrawal_date' : Date.now(),
+                       'wallet' : req.params["address"]});
     }
     console.log(historyObj);
     res.send(historyObj);

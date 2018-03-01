@@ -117,9 +117,11 @@ app.get('/api/history/:address/', function (req, res) {
     console.log('constructing history...');
     for (var i = 0; i < history.length; i++) {
       console.log('adding history data');
-      historyObj.add({ 'id': i,
-        'amount': 0,
-        'wallet': address });
+      historyObj.push({ 'id': i,
+        'amount': history[i],
+        'date': Date.now(),
+        'withdrawal_date': Date.now(),
+        'wallet': req.params["address"] });
     }
     console.log(historyObj);
     res.send(historyObj);
