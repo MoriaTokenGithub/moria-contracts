@@ -169,22 +169,37 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
 
-  function outstandingAtFor(uint _period, address _address) public returns (uint256 amount) {
-    if (holdings[_address][_period] == 0) {
-      return 0;
+  function outstandingFor(address _address) public returns (uint256 amount) {
+    uint256 total = 0;
+    for (uint i = claimedTo[_address]; i < period; i++) {
+      uint256 holds;
+      if(last[_address] < i) {
+        holds = holdings[_address][last[_address]];
+      } else {
+        holds = holdings[_address][i];
+      }
+      uint256 multiplier = dividends[i].mul(holds);
+      uint256 owed = multiplier.div(totalSupply);
+      total += owed;
     }
-    uint256 multiplier = dividends[_period].mul(holdings[_address][_period]);
-    return multiplier.div(totalSupply);    
+    return total;
   }
 
-  function outstandingAt(uint256 _period) public returns (uint256 amount) {
-    if (holdings[msg.sender][_period] == 0) {
-      return 0;
+  function outstanding() public returns (uint256 amount) {
+    uint256 total = 0;
+    for (uint i = calimedTo[msg.sender]; i < period; i++) {
+       if(last[msg.sender] < i) {
+        holds = holdings[msg.sender][last[_address]];
+      } else {
+        holds = holdings[msg.sender][i];
+      }
+      uint256 multiplier = dividends[i].mul(holds);
+      uint256 owed = multiplier.div(totalSupply);
+      total += owed;
     }
-    uint256 multiplier = dividends[_period].mul(holdings[msg.sender][_period]);
-    return multiplier.div(totalSupply);    
+    return total;
   }
-
+  
   function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool success) {
     dividends[period] = msg.value;
     period += 1;
