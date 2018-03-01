@@ -143,7 +143,7 @@ contract DividendToken is HumanStandardToken {
     }
     claimedTo[_address] = period;
     if(total > 0) {
-      //_address.transfer(total);
+      _address.transfer(total);
       Claimed(_address, i, total);
     }
     return total;
