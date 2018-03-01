@@ -77,6 +77,7 @@ module.exports = {
     }).then(function(value) {
       return value / Math.pow(10, decimals);
     }).catch(function(e) {
+      console.log(e);
       return -1;
     });   
   },
@@ -108,11 +109,15 @@ module.exports = {
 
   payOutstandingDividends : function(address, callback) {
     var token;
+
     return MoriaToken.deployed().then(function(instance) {
-      return instance.claimDividendsFor(address, {from: account});
+      token = instance;
+      return instance.claimDividendsFor.estimateGas(address);
+    }).then(function(gasCost) {
+      console.log("gas cost = " + gasCost);
+      return token.claimDividendsFor(address, {from: account, gas: gasCost});
     }).then(function(value) {
       callback(value);
-      return true;
     })
   },
 
@@ -154,6 +159,11 @@ module.exports = {
   },
 
   payDividend : function(amount) {
-    
+    var token;
+
+    return MoriaToken.deployed().then(function(instance) {
+      token = instance;
+      return token.payIn({from: account, value: amount});
+    });
   }
 }

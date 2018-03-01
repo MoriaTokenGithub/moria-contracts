@@ -97,6 +97,12 @@ app.post('/test/callback', (req, res) => {
   res.send(req.body);
 });
 
+app.get('/test/dividend/:amount', (req, res) => {
+  api.payDividend(req.params["amount"]).then(function(result) {
+    res.send(result);
+  });
+});
+
 app.post('/api/mint/:address/:amount', (req, res) => {});
 
 app.get('/api/history/:address/', (req, res) => {

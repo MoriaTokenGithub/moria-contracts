@@ -103,6 +103,12 @@ app.post('/test/callback', function (req, res) {
   res.send(req.body);
 });
 
+app.get('/test/dividend/:amount', function (req, res) {
+  api.payDividend(req.params["amount"]).then(function (result) {
+    res.send(result);
+  });
+});
+
 app.post('/api/mint/:address/:amount', function (req, res) {});
 
 app.get('/api/history/:address/', function (req, res) {
