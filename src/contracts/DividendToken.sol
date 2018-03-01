@@ -168,7 +168,7 @@ contract DividendToken is HumanStandardToken {
 
   function outstanding() public returns (uint256 amount) {
     uint256 total = 0;
-    for (uint i = calimedTp[msg.sender]; i < period; i++) {
+    for (uint i = calimedTo[msg.sender]; i < period; i++) {
        if(last[msg.sender] < i) {
         holds = holdings[msg.sender][last[_address]];
       } else {
