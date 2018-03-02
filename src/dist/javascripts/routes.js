@@ -5,24 +5,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 
-var lockExpiry = 1000 * 20; // 20 seconds
-var paymentLock = {};
-
-var lockAddress = function lockAddress(address) {
-  paymentLock[address] = Date.now() + lockExpiry;
-};
-
-var unlockAddress = function unlockAddress(address) {
-  paymentLock[address] = 0;
-};
-
-var isLocked = function isLocked(address) {
-  if (paymentLock[address] == undefined) {
-    return false;
-  }
-  return paymentLock[address] >= Date.now();
-};
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -52,7 +34,6 @@ app.get('/api/dividends/:address', function (req, res) {
 });
 
 app.get('/api/pay/:address', function (req, res) {
-  if (isLocked(req.params["address"])) {}
   api.payOutstandingDividends(req.params["address"], function (value) {
     console.log(value);
   }).then(function (result) {
