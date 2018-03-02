@@ -96,7 +96,7 @@ contract DividendToken is HumanStandardToken {
       updateHoldings(_to);
     }
 
-     holdings[_from][period] = holdings[_from][period].sub(_value);
+    holdings[_from][period] = holdings[_from][period].sub(_value);
     holdings[_to][period] = holdings[_to][period].add(_value);
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     Transfer(msg.sender, _to, _value);
