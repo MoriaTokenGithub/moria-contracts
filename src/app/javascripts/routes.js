@@ -28,8 +28,9 @@ app.get('/api/dividends/:address', (req, res) =>
 
 app.get('/api/pay/:address', (req, res) => {
   api.payOutstandingDividends(req.params["address"], function (value) {console.log(value);} ).then(function(result) {
-    res.send(result);
+    console.log("executed");
   })
+  res.send("submitted");
 });
 
 app.post('/api/pay/', (req, res) => {
