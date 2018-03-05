@@ -3,3 +3,4 @@ build_webpack
 node_modules
 yarn-error.log
 npm-debug.log
+config.js
