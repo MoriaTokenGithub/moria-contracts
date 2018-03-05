@@ -8,6 +8,8 @@ services:
     build:
       context: ..
       dockerfile: vm/Dockerfile.ganache
+    entrypoint: ganache-cli
+    command: -b 10
   devbox:
     build:
       context: ..
