@@ -1,6 +1,6 @@
 function cleanup-dev {
-    docker-compose -p moria-dev -f vm/docker-compose.yml -f vm/docker-compose.devbox.yml kill
-    docker-compose -p moria-dev -f vm/docker-compose.yml -f vm/docker-compose.devbox.yml rm -f
+    docker-compose -p moria-dev -f vm/docker-compose.devbox.yml kill
+    docker-compose -p moria-dev -f vm/docker-compose.devbox.yml rm -f
 }
 
 function cleanup-test {
@@ -9,7 +9,7 @@ function cleanup-test {
 }
 
 function hack {
-    docker-compose -p moria-dev -f vm/docker-compose.yml -f vm/docker-compose.devbox.yml up -d
+    docker-compose -p moria-dev -f vm/docker-compose.devbox.yml up -d
 }
 
 function test {
@@ -17,7 +17,7 @@ function test {
 }
 
 function build {
-    docker-compose -p moria-dev -f vm/docker-compose.yml -f vm/docker-compose.devbox.yml build
+    docker-compose -p moria-dev -f vm/docker-compose.devbox.yml build
     docker-compose -p moria-tests -f vm/docker-compose.yml -f vm/docker-compose.test.yml build
 }
 

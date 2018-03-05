@@ -1,0 +1,4 @@
+FROM node:9.7.1-alpine
+RUN npm install -g ganache-cli
+EXPOSE 8545
+ENTRYPOINT ganache-cli

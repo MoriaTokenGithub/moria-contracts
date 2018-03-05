@@ -6,7 +6,7 @@ console.log(__dirname);
 import MoriaTokenSol from '../../build/contracts/MoriaToken.json'
 
 // needs to get env
-var web3 = new Web3(new Web3.providers.HttpProvider("http://testrpc:8545"));
+var web3 = new Web3(new Web3.providers.HttpProvider("http://devnet:8545"));
 var MoriaToken = contract(MoriaTokenSol);
 MoriaToken.setProvider(web3.currentProvider);
 

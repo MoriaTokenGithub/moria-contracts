@@ -18,7 +18,7 @@ console.log(__dirname);
 
 
 // needs to get env
-var web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://testrpc:8545"));
+var web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://devnet:8545"));
 var MoriaToken = (0, _truffleContract2.default)(_MoriaToken2.default);
 MoriaToken.setProvider(web3.currentProvider);
 
