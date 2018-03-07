@@ -1,4 +1,6 @@
 FROM node:9.7.1-alpine
+RUN apk add --update git && \
+  rm -rf /tmp/* /var/cache/apk/*
 RUN npm install -g ganache-cli
 EXPOSE 8545
-ENTRYPOINT ["" "ganache-cli"]
+ENTRYPOINT ["ganache-cli"]

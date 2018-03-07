@@ -1,4 +1,0 @@
-FROM node:7.8
-RUN npm install -g ethereumjs-testrpc
-EXPOSE 8545
-CMD testrpc

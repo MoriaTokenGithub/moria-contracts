@@ -85,38 +85,10 @@ function command_hack {
 
 }
 
-function command_test {   
-    # catch unexpected failures, do cleanup and output an error message
-    trap 'cleanup-test ; printf "${RED}Tests Failed For Unexpected Reasons${NC}\n"'\
-         HUP INT QUIT PIPE TERM
-
-    test
-    if [ $? -ne 0 ] ; then
-        printf "${RED}Docker Compose Failed${NC}\n"
-        exit -1
-    fi
-    # wait for the test service to complete and grab the exit code
-    TEST_EXIT_CODE=`docker wait moriatests_testbox_1`
-    # output the logs for the test (for clarity)
-    docker logs  moriatests_testbox_1
-    # inspect the output of the test and display respective message
-    if [ -z ${TEST_EXIT_CODE+x} ] || [ "$TEST_EXIT_CODE" -ne 0 ] ; then
-        printf "${RED}Tests Failed${NC} - Exit Code: $TEST_EXIT_CODE\n"
-    else
-        printf "${GREEN}Tests Passed${NC}\n"
-    fi
-    # call the cleanup fuction
-    cleanup-test
-    # exit the script with the same code as the test service code
-    exit $TEST_EXIT_CODE
-}
-
 function command_down {
     printf "${GREEN}Killing docker instances${NC}\n"
     cleanup-dev;
     printf "${GREEN}Dev down${NC}\n"
-    cleanup-test; 
-    printf "${GREEN}Test down${NC}\n"
     printf "${GREEN}It's too bad she won't live, but then again who does?${NC}"
 }
 
