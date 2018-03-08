@@ -52,7 +52,8 @@ app.post('/api/pay/', (req, res) => {
                  {body: {
                    "completed" :  completed,
                    "success" : result,
-                   "created" :  created},
+                   "created" :  created,
+                   "address" : address},
                   json: true},
                  function (error, response, body) {
                    if (!error && response.statusCode == 200) {
