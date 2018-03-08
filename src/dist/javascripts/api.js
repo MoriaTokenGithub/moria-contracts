@@ -175,11 +175,18 @@ module.exports = {
     }).then(function (_period) {
       period = _period;
       console.log('history to period: ' + period);
-      return token.dividendHistoryFor.call(address, { from: account });
+      return token.dividendHistory.call({ from: account });
     }).then(function (_dividends) {
       dividends = _dividends;
-      console.log(dividends);
-      return dividends;
+      return token.dividendDateHistory.call({ from: account });
+      //return dividends;
+    }).then(function (_dates) {
+      var historyObj = [];
+      for (var i = 0; i < _dates.length; i++) {
+        historyObj.push({ "amount": dividends[i],
+          "date": _dates[i] * 1000 });
+      }
+      return historyObj;
     });
   },
 
@@ -189,6 +196,18 @@ module.exports = {
     return MoriaToken.deployed().then(function (instance) {
       token = instance;
       return token.payIn({ from: account, value: amount });
+    });
+  },
+
+  currentPeriod: function currentPeriod() {
+    return MoriaToken.deployed().then(function (instance) {
+      return instance.period.call({ from: account });
+    });
+  },
+
+  claimedTo: function claimedTo(address) {
+    return MoriaToken.deployed().then(function (instance) {
+      return instance.claimedTo.call(address, { from: account });
     });
   }
 };

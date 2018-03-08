@@ -60,7 +60,8 @@ app.post('/api/pay/', function (req, res) {
     request.post(callback, { body: {
         "completed": completed,
         "success": result,
-        "created": created },
+        "created": created,
+        "address": address },
       json: true }, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         console.log(body);
@@ -94,15 +95,23 @@ app.get('/test/dividend/:amount', function (req, res) {
 app.post('/api/mint/:address/:amount', function (req, res) {});
 
 app.get('/api/history/:address/', function (req, res) {
-  api.dividendHistory(req.params["address"]).then(function (history) {
+  var claimedTo;
+  api.claimedTo(req.params["address"]).then(function (_claimedTo) {
+    claimedTo = _claimedTo;
+    return api.dividendHistory(req.params["address"]);
+  }).then(function (history) {
     var historyObj = [];
-    console.log('constructing history...');
+    console.log('claimed to ' + claimedTo);
     for (var i = 0; i < history.length; i++) {
+      var withdrawal = 0;
+      if (i < claimedTo) {
+        withdrawal = Date.now();
+      }
       console.log('adding history data');
       historyObj.push({ 'id': i,
-        'amount': history[i],
-        'date': Date.now(),
-        'withdrawal_date': Date.now(),
+        'amount': history[i]["amount"],
+        'date': history[i]["date"],
+        'withdrawal_date': withdrawal,
         'wallet': req.params["address"] });
     }
     console.log(historyObj);

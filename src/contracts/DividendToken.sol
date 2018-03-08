@@ -7,6 +7,7 @@ contract DividendToken is HumanStandardToken {
 
   uint256 public period = 0;
   mapping (uint256 => uint256) public dividends;
+  mapping (uint256 => uint256) public dividendDates;
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
   mapping (address => uint256) public claimedTo;
@@ -106,6 +107,7 @@ contract DividendToken is HumanStandardToken {
 
   function payIn() public onlyLive onlyAdmin payable returns (bool success) {
     dividends[period] = msg.value;
+    dividendDates[period] = now;
     period += 1;
     Paid(msg.sender, period - 1, msg.value);
     return true;
@@ -186,6 +188,14 @@ contract DividendToken is HumanStandardToken {
     period += 1;
     Paid(msg.sender, period - 1, msg.value);
     ended = true;
+  }
+
+  function dividendDateHistory() public returns (uint256[]) {
+    uint256[] memory dates = new uint[](period);
+    for(uint i = 0; i < period; i++) {
+      dates[i] = dividendDates[i];
+    }
+    return dates;
   }
 
   function dividendHistory() public returns (uint256[]) {
