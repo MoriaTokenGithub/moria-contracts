@@ -108,11 +108,13 @@ app.get('/api/history/:address/', function (req, res) {
         withdrawal = Date.now();
       }
       console.log('adding history data');
-      historyObj.push({ 'id': i,
-        'amount': history[i]["amount"],
-        'date': history[i]["date"],
-        'withdrawal_date': withdrawal,
-        'wallet': req.params["address"] });
+      if (history[i]["amount"] != null) {
+        historyObj.push({ 'id': i,
+          'amount': history[i]["amount"],
+          'date': history[i]["date"],
+          'withdrawal_date': withdrawal,
+          'wallet': req.params["address"] });
+      }
     }
     console.log(historyObj);
     res.send(historyObj);

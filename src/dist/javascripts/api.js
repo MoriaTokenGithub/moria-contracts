@@ -175,7 +175,7 @@ module.exports = {
     }).then(function (_period) {
       period = _period;
       console.log('history to period: ' + period);
-      return token.dividendHistory.call({ from: account });
+      return token.dividendHistoryFor.call(address, { from: account });
     }).then(function (_dividends) {
       dividends = _dividends;
       return token.dividendDateHistory.call({ from: account });
