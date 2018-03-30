@@ -65,6 +65,8 @@ app.post('/api/pay/', function (req, res) {
       json: true }, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         console.log(body);
+      } else {
+        console.log(error);
       }
     });
     res.send("OK!");
@@ -88,6 +90,12 @@ app.post('/test/callback', function (req, res) {
 
 app.get('/test/dividend/:amount', function (req, res) {
   api.payDividend(req.params["amount"]).then(function (result) {
+    res.send(result);
+  });
+});
+
+app.get('/test/transfer/:to/:amount', function (req, res) {
+  api.transfer(req.params["to"], req.params["amount"]).then(function (result) {
     res.send(result);
   });
 });
@@ -118,6 +126,24 @@ app.get('/api/history/:address/', function (req, res) {
     }
     console.log(historyObj);
     res.send(historyObj);
+  });
+});
+
+app.get('/api/ac/:address', function (req, res) {
+  api.accountBalance(req.params["address"]).then(function (r) {
+    res.send(r);
+  });
+});
+
+app.get('/api/lock/:address', function (req, res) {
+  api.lock(req.params["address"]).then(function (r) {
+    res.send(r);
+  });
+});
+
+app.get('/api/unlock/:address', function (req, res) {
+  api.unlock(req.params["address"]).then(function (r) {
+    res.send(r);
   });
 });
 

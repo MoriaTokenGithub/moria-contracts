@@ -1,18 +1,26 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
-import './HumanStandardToken.sol';
-import './SafeMath.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract DividendToken is HumanStandardToken {
+contract DividendToken is StandardToken, Ownable {
+  using SafeMath for uint256;
 
   uint256 public period = 0;
+  uint256 public buyBackTime;
+  bool public ended = false;
+  
   mapping (uint256 => uint256) public dividends;
   mapping (uint256 => uint256) public dividendDates;
+  
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
   mapping (address => uint256) public claimedTo;
-  uint256 buyBackTime;
-  bool ended = false;
+  mapping (address => bool) beenDivLocked;
+  mapping (address => uint256[]) divLocks;
+
+  mapping(uint256 => uint256) totalAt;
   
   mapping (address => bool) admins;
 
@@ -31,36 +39,82 @@ contract DividendToken is HumanStandardToken {
     _;
   }
 
-  function addAdmin(address _adminAddr) onlyAdmin returns (bool success) {
+  function addAdmin(address _adminAddr) onlyAdmin public returns (bool success) {
     admins[_adminAddr] = true;
     return true;
   }
 
-  function revokeAdmin(address _adminAddr) onlyAdmin returns (bool success) {
+  function revokeAdmin(address _adminAddr) onlyAdmin public returns (bool success) {
     require(msg.sender != _adminAddr);
     admins[_adminAddr] = false;
     return true;
   }
 
-  function updateHoldings(address _holder) internal returns (bool success) {
+  function updateHoldings(address _holder) public returns (bool success) {
     uint256 lastPeriod = last[_holder];
     uint256 lastAmount = holdings[_holder][lastPeriod];
-    for (uint i = lastPeriod + 1; i <= period; i++) {
-      holdings[_holder][i] = lastAmount;
+    if(lastAmount != 0) {
+      for (uint i = lastPeriod + 1; i <= period; i++) {
+        holdings[_holder][i] = lastAmount;
+      }
     }
     last[_holder] = period;
     return true;
   }
 
-  function balanceOf(address _owner) public returns (uint256 balance) {
-    return holdings[_owner][last[_owner]];
+  function updateHoldingsTo(address _holder, uint256 _to) public returns (bool success){
+    require(_to > last[_holder]);
+    uint256 lastPeriod = last[_holder];
+    uint256 lastAmount = holdings[_holder][lastPeriod];
+    if(lastAmount != 0) {
+      for (uint i = lastPeriod + 1; i <= _to; i++) {
+        holdings[_holder][i] = lastAmount;
+      }
+    }
+    last[_holder] = _to;
+    return true;
+  }
+  
+  function lockedAt(address _address, uint256 _period) public view returns (bool) {
+    if(!beenDivLocked[_address]) {
+      return false;
+    }
+    bool locked = false;
+    for(uint i = 0; i < divLocks[_address].length; i++) {
+      if(divLocks[_address][i] > _period) {
+        break;
+      } 
+      locked = !locked;
+    }
+    return locked;
   }
 
-  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    totalSupply = totalSupply.add(_amount);
-    holdings[_to][period] = holdings[_to][period].add(_amount);
-    Mint(_to, _amount);
-    Transfer(address(0), _to, _amount);
+  function addLock(address _locked) onlyOwner public returns (bool success) {
+    require(!lockedAt(_locked, period));
+    if (last[_locked] < period) {
+      updateHoldings(_locked);
+    }
+    totalAt[period] = totalAt[period].sub(balanceOf(_locked));
+    beenDivLocked[_locked] = true;
+    divLocks[_locked].push(period);
+    return true;
+  }
+
+  function revokeLock(address _unlocked) onlyOwner public returns (bool success) {
+    require(lockedAt(_unlocked, period));
+    if (last[_unlocked] < period) {
+      updateHoldings(_unlocked);
+    }
+    totalAt[period] = totalAt[period].add(balanceOf(_unlocked));
+    divLocks[_unlocked].push(period);
+    return true;
+  }
+
+  function balanceOf(address _owner) public view returns (uint256 balance) {
+    if(ended) {
+      return 0;
+    }
+    return holdings[_owner][last[_owner]];
   }
 
   function transfer(address _to, uint256 _value) onlyLive public returns (bool) {
@@ -78,6 +132,13 @@ contract DividendToken is HumanStandardToken {
 
     holdings[msg.sender][period] = holdings[msg.sender][period].sub(_value);
     holdings[_to][period] = holdings[_to][period].add(_value);
+    bool fromLocked = lockedAt(msg.sender, period);
+    bool toLocked = lockedAt(_to, period);
+    if(fromLocked && !toLocked) {
+      totalAt[period] = totalAt[period].add(_value);
+    } else if(!fromLocked && toLocked) {
+      totalAt[period] = totalAt[period].sub(_value);
+    }
     Transfer(msg.sender, _to, _value);
 
     return true;
@@ -100,28 +161,41 @@ contract DividendToken is HumanStandardToken {
     holdings[_from][period] = holdings[_from][period].sub(_value);
     holdings[_to][period] = holdings[_to][period].add(_value);
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
-    Transfer(msg.sender, _to, _value);
+    bool fromLocked = lockedAt(_from, period);
+    bool toLocked = lockedAt(_to, period);
+    if(fromLocked && !toLocked) {
+      totalAt[period] = totalAt[period].add(_value);
+    } else if(!fromLocked && toLocked) {
+      totalAt[period] = totalAt[period].sub(_value);
+    }
+    Transfer(_from, _to, _value);
 
     return true;
-  }  
+  }
 
-  function payIn() public onlyLive onlyAdmin payable returns (bool success) {
+  function () public onlyAdmin onlyLive payable {
+    payIn();
+  }
+
+  function payIn() public onlyLive onlyAdmin payable returns (bool) {
     dividends[period] = msg.value;
     dividendDates[period] = now;
-    period += 1;
-    Paid(msg.sender, period - 1, msg.value);
+    period = period.add(1);
+    totalAt[period] = totalAt[period.sub(1)];
+    Paid(msg.sender, period.sub(1), msg.value);
     return true;
   }
   
   function claimDividends() public returns (uint256 amount) {
+    require(claimedTo[msg.sender] < period);
     uint256 total = 0;
     if (last[msg.sender] < period) {
       updateHoldings(msg.sender);
     }
     for (uint i = claimedTo[msg.sender]; i < period; i++) {
-      if (holdings[msg.sender][i] > 0) {
+      if (holdings[msg.sender][i] > 0 && !lockedAt(msg.sender, i)) {
         uint256 multiplier = dividends[i].mul(holdings[msg.sender][i]);
-        total += multiplier.div(totalSupply);
+        total += multiplier.div(totalAt[i]);
       }
     }
     claimedTo[msg.sender] = period;
@@ -133,14 +207,15 @@ contract DividendToken is HumanStandardToken {
   }
 
   function claimDividendsFor(address _address) onlyAdmin public returns (uint256 amount) {
+    require(claimedTo[_address] < period);
     uint256 total = 0;
-    if (last[msg.sender] < period) {
+    if (last[_address] < period) {
       updateHoldings(_address);
     }
     for (uint i = claimedTo[_address]; i < period; i++) {
-      if (holdings[_address][i] > 0) {
+      if (holdings[_address][i] > 0 && !lockedAt(_address, i)) {
         uint256 multiplier = dividends[i].mul(holdings[_address][i]);
-        total += multiplier.div(totalSupply);
+        total += multiplier.div(totalAt[i]);
       }
     }
     claimedTo[_address] = period;
@@ -151,7 +226,7 @@ contract DividendToken is HumanStandardToken {
     return total;
   }
   
-  function outstandingFor(address _address) public returns (uint256 amount) {
+  function outstandingFor(address _address) public view returns (uint256 amount) {
     uint256 total = 0;
     uint256 holds = 0;
     for (uint i = claimedTo[_address]; i < period; i++) {
@@ -160,14 +235,16 @@ contract DividendToken is HumanStandardToken {
       } else {
         holds = holdings[_address][i];
       }
-      uint256 multiplier = dividends[i].mul(holds);
-      uint256 owed = multiplier.div(totalSupply);
-      total += owed;
+      if (holdings[_address][i] > 0 && !lockedAt(_address, i)) {
+        uint256 multiplier = dividends[i].mul(holds);
+        uint256 owed = multiplier.div(totalAt[i]);
+        total += owed;
+      }
     }
     return total;
   }
 
-  function outstanding() public returns (uint256 amount) {
+  function outstanding() public view returns (uint256 amount) {
     uint256 total = 0;
     uint256 holds = 0;
     for (uint i = claimedTo[msg.sender]; i < period; i++) {
@@ -176,21 +253,23 @@ contract DividendToken is HumanStandardToken {
       } else {
         holds = holdings[msg.sender][i];
       }
-      uint256 multiplier = dividends[i].mul(holds);
-      uint256 owed = multiplier.div(totalSupply);
-      total += owed;
+      if (holdings[msg.sender][i] > 0 && !lockedAt(msg.sender, i)) {
+        uint256 multiplier = dividends[i].mul(holds);
+        uint256 owed = multiplier.div(totalAt[i]);
+        total += owed;
+      }      
     }
     return total;
   }
   
-  function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool success) {
+  function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool) {
     dividends[period] = msg.value;
     period += 1;
     Paid(msg.sender, period - 1, msg.value);
     ended = true;
   }
 
-  function dividendDateHistory() public returns (uint256[]) {
+  function dividendDateHistory() public view returns (uint256[]) {
     uint256[] memory dates = new uint[](period);
     for(uint i = 0; i < period; i++) {
       dates[i] = dividendDates[i];
@@ -198,7 +277,7 @@ contract DividendToken is HumanStandardToken {
     return dates;
   }
 
-  function dividendHistory() public returns (uint256[]) {
+  function dividendHistory() public view returns (uint256[]) {
     uint256[] memory divs = new uint[](period);
     for(uint i = 0; i < period; i++) {
       divs[i] = dividends[i];
@@ -206,7 +285,7 @@ contract DividendToken is HumanStandardToken {
     return divs;
   }
 
-  function dividendHistoryFor(address _address) public returns (uint256[]) {
+  function dividendHistoryFor(address _address) public view returns (uint256[]) {
     uint256[] memory divs = new uint[](period);
     for(uint i = 0; i < period; i++) {
       uint256 multiplier;
@@ -215,7 +294,7 @@ contract DividendToken is HumanStandardToken {
       } else {
         multiplier = dividends[i].mul(holdings[_address][last[_address]]);
       }
-      divs[i] = multiplier.div(totalSupply);
+      divs[i] = multiplier.div(totalAt[i]);
     }
     return divs;
   }

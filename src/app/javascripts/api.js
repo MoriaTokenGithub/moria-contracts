@@ -128,7 +128,7 @@ module.exports = {
     return MoriaToken.deployed().then(function(instance) {
       token = instance;
       //console.log(web3.eth.getBalance(instance.address).toString());
-      return 150000;//token.claimDividendsFor.estimateGas(address, {from: account});
+      return 6700000;//token.claimDividendsFor.estimateGas(address, {from: account});
     }).then(function(gasCost) {
       console.log("gas cost = " + gasCost);
       return token.claimDividendsFor(address, {from: account, gas: gasCost});
@@ -185,7 +185,8 @@ module.exports = {
 
     return MoriaToken.deployed().then(function(instance) {
       token = instance;
-      return token.payIn({from: account, value: amount});
+      //return token.payIn({from: account, value: amount});
+      instance.sendTransaction({from: account, value: amount, gas: 180000});
     });
   },
 
@@ -198,6 +199,37 @@ module.exports = {
   claimedTo : function(address) {
     return MoriaToken.deployed().then(function(instance) {
       return instance.claimedTo.call(address, {from: account});
+    });
+  },
+
+  transfer : function(to, amount) {
+    var token;    
+    return MoriaToken.deployed().then(function(instance) {
+      token = instance;
+      return token.decimals();
+    }).then(function(value) {
+      var decimals = value;
+      var rawAmount = amount * Math.pow(10, decimals);
+      token.transfer.estimateGas(to, rawAmount, {from: account}).then(console.log);
+      return token.transfer(to, rawAmount, {from: account, gas: 6700000})
+    });
+  },
+
+  lock : function(address) {
+    return MoriaToken.deployed().then(function(instance) {
+      return instance.addLock(address, {from: account, gas: 180000});
+    });Di
+  },
+
+  unlock : function(account) {
+    return MoriaToken.deployed().then(function(instance) {
+      return instance.revokeLock(address, {from: account, gas: 180000}); 
+    });
+  },
+
+  accountBalance : function(account) {
+    return web3.eth.getBalance(account).then(function(amount) {
+      return amount;
     });
   }
 }

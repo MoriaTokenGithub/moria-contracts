@@ -9,6 +9,7 @@ COPY ./src/package.json /src/
 
 RUN npm install -g truffle     
 RUN npm install
+RUN apk update && apk add ca-certificates && update-ca-certificates && apk add openssl
 
 ENTRYPOINT [""]
 
