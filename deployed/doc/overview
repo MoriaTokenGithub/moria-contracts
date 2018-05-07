@@ -1,0 +1,127 @@
+Moria DividendToken Spec
+------------------------
+
+
+This document describes the Moria dividend paying token contract
+
+The bulk of the contract functions consist of the standard ERC20 functions which act in accordance with the ERC20 spec. Additionally the following non-standard functions exist
+
+Note that dividends are calculated in terms of periods. The contract starts at period 0. When a dividend is paid the period increases. When a dividend payment is claimed the amount owed is calculated given the token balance of an address at the period the payment took place.
+
+
+function addAdmin(address _adminAddr) onlyAdmin public returns (bool success):
+
+Adds an address as an admin user, only callable by an existing admin user.
+
+
+function revokeAdmin(address _adminAddr) onlyAdmin public returns (bool success)
+
+Removes an address as an admin user, only callable by an existing admin user.
+
+
+function pause() onlyOwner public returns (bool success)
+
+Pauses the contract. When paused tokens cannot be transferred and dividend payments cannot be claimed by users, though an admin user can pay owed dividend to a user on their behalf. Only callable by the contract owner
+
+
+function unpause() onlyOwner public returns (bool success)
+
+Unpauses the contract.
+
+function updateHoldingsTo(address _holder, uint256 _to) public returns (bool success)
+
+Internally used function, exposed as public for a situation in which the gas usage needed to calculate owed dividends for a user exceeds the block gas limit. Only callable by admin accounts. UNLIKELY TO BE NEEDED OTHERWISE.
+
+
+function addLock(address _locked) onlyOwner public returns (bool success)
+
+Locks an account - locked accounts are not considered when calculating and paying dividends.
+
+
+function revokeLock(address _unlocked) onlyOwner public returns (bool success)
+
+Unlocks a locked account.
+
+
+function lockedAt(address _address, uint256 _period) public view returns (bool)
+
+Checks whether a given address was locked for a given period. 
+
+
+function () public onlyAdmin onlyLive payable
+
+Makes the contract payable. A payment made to the contract address counts as a dividend payment, reclaimable by token holders in proportion to the tokens held when the payment was made. Only admin users can pay into the contract.
+
+
+function payIn() public onlyLive onlyAdmin payable returns (bool)
+
+Equivalent to paying the contract directly.
+
+
+function claimDividends() unpaused public returns (uint256 amount)
+
+Pays out all owed dividends to the calling address. Only callable if the contract is unpaused.
+
+
+function claimDividendsFor(address _address) onlyAdmin public returns (uint256 amount)
+
+Pays out all owed dividends to the specified address. Only callable by admin accounts.
+
+
+function outstandingFor(address _address) public view returns (uint256 amount)
+
+Returns the value of unpaid dividends for the specified address.
+
+
+function outstanding() public view returns (uint256 amount)
+
+Returns the value of unpaid dividends for the calling address.
+
+
+function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool)
+
+Triggers token buyback. The value of Ether paid into this call is claimable by token holders in proportion to their holdings when the call is made. Only callable by admin accounts. Only callable once. Only callable after the buy back date has passed. Once called all tokens are transferred to the owner account.
+
+
+function claimBuyBack() public returns (bool)
+
+Pays out the buyback value of final token balance to the calling account.
+
+
+function claimBuyBackFor(address _address) onlyAdmin public returns (bool)
+
+Pays out the buyback value of final token balance to the specified account. Only callable by an admin account.
+
+
+function dividendDateHistory() public view returns (uint256[])
+
+Returns the dates that dividends were paid.
+
+
+function dividendHistory() public view returns (uint256[])
+
+Returns the dividends previously claimed by the calling account.
+
+
+function dividendHistoryFor(address _address) public view returns (uint256[]) 
+
+Returns the dividends previously claimed by the specified account.
+
+
+Calling contract functions
+
+For Dividend Payment an admin account simply has to transfer Ether to the contract address using normal payment mechanisms.
+
+There are a variety of ways to call contracts, this covers a method using the public MyEtherWallet website: https://www.myetherwallet.com/
+
+
+- go to: https://www.myetherwallet.com/#contracts
+- enter the contract address: 0x8E81332DB0d491005D26c9f889dc7eaDd7Ca18F0
+- in the ABI / JSON interface field paste the contents of the file token.abi
+- click access
+- select the method you wish to execute from the dropdown list
+- enter relevant parameters
+- choose the private key access method
+- select write
+
+
