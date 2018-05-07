@@ -108,20 +108,4 @@ function dividendHistoryFor(address _address) public view returns (uint256[])
 Returns the dividends previously claimed by the specified account.
 
 
-Calling contract functions
-
-For Dividend Payment an admin account simply has to transfer Ether to the contract address using normal payment mechanisms.
-
-There are a variety of ways to call contracts, this covers a method using the public MyEtherWallet website: https://www.myetherwallet.com/
-
-
-- go to: https://www.myetherwallet.com/#contracts
-- enter the contract address: 0x8E81332DB0d491005D26c9f889dc7eaDd7Ca18F0
-- in the ABI / JSON interface field paste the contents of the file token.abi
-- click access
-- select the method you wish to execute from the dropdown list
-- enter relevant parameters
-- choose the private key access method
-- select write
-
 
