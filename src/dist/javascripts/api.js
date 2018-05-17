@@ -231,7 +231,7 @@ module.exports = {
     });Di;
   },
 
-  unlock: function unlock(account) {
+  unlock: function unlock(address) {
     return MoriaToken.deployed().then(function (instance) {
       return instance.revokeLock(address, { from: account, gas: 180000 });
     });

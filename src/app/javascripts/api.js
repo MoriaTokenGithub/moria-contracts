@@ -218,10 +218,10 @@ module.exports = {
   lock : function(address) {
     return MoriaToken.deployed().then(function(instance) {
       return instance.addLock(address, {from: account, gas: 180000});
-    });Di
+    });
   },
 
-  unlock : function(account) {
+  unlock : function(address) {
     return MoriaToken.deployed().then(function(instance) {
       return instance.revokeLock(address, {from: account, gas: 180000}); 
     });

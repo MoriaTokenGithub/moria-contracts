@@ -10,9 +10,12 @@ contract DividendToken is StandardToken, Ownable {
   uint256 public period = 0;
   uint256 public buyBackTime;
   bool public ended = false;
+  bool public paused = false;
   
   mapping (uint256 => uint256) public dividends;
   mapping (uint256 => uint256) public dividendDates;
+  uint256 public buyBackTotal;
+  mapping (address => bool) public boughtBack;
   
   mapping (address => mapping (uint256 => uint256)) internal holdings;
   mapping (address => uint256) internal last;
@@ -34,6 +37,11 @@ contract DividendToken is StandardToken, Ownable {
     _;
   }
 
+  modifier unpaused() {
+    require(!paused);
+    _;
+  }
+
   modifier onlyAdmin() {
     require(msg.sender == owner || admins[msg.sender]);
     _;
@@ -41,16 +49,30 @@ contract DividendToken is StandardToken, Ownable {
 
   function addAdmin(address _adminAddr) onlyAdmin public returns (bool success) {
     admins[_adminAddr] = true;
+    AdminAdded(_adminAddr, msg.sender);
     return true;
   }
 
   function revokeAdmin(address _adminAddr) onlyAdmin public returns (bool success) {
     require(msg.sender != _adminAddr);
     admins[_adminAddr] = false;
+    AdminRevoked(_adminAddr, msg.sender);
     return true;
   }
 
-  function updateHoldings(address _holder) public returns (bool success) {
+  function pause() onlyOwner public returns (bool success) {
+    paused = true;
+    Paused(period);
+    return true;
+  }
+
+  function unpause() onlyOwner public returns (bool success) {
+    paused = false;
+    Unpaused(period);
+    return true;
+  }
+
+  function updateHoldings(address _holder) internal returns (bool success) {
     uint256 lastPeriod = last[_holder];
     uint256 lastAmount = holdings[_holder][lastPeriod];
     if(lastAmount != 0) {
@@ -62,8 +84,9 @@ contract DividendToken is StandardToken, Ownable {
     return true;
   }
 
-  function updateHoldingsTo(address _holder, uint256 _to) public returns (bool success){
+  function updateHoldingsTo(address _holder, uint256 _to) public onlyAdmin returns (bool success){
     require(_to > last[_holder]);
+    require(_to <= period);
     uint256 lastPeriod = last[_holder];
     uint256 lastAmount = holdings[_holder][lastPeriod];
     if(lastAmount != 0) {
@@ -97,6 +120,7 @@ contract DividendToken is StandardToken, Ownable {
     totalAt[period] = totalAt[period].sub(balanceOf(_locked));
     beenDivLocked[_locked] = true;
     divLocks[_locked].push(period);
+    Locked(_locked, period);
     return true;
   }
 
@@ -107,6 +131,7 @@ contract DividendToken is StandardToken, Ownable {
     }
     totalAt[period] = totalAt[period].add(balanceOf(_unlocked));
     divLocks[_unlocked].push(period);
+    Unlocked(_unlocked, period);
     return true;
   }
 
@@ -117,7 +142,7 @@ contract DividendToken is StandardToken, Ownable {
     return holdings[_owner][last[_owner]];
   }
 
-  function transfer(address _to, uint256 _value) onlyLive public returns (bool) {
+  function transfer(address _to, uint256 _value) onlyLive unpaused public returns (bool) {
     require(_to != address(0));
     uint256 senderLastPeriod = last[msg.sender];
     require(_value <= holdings[msg.sender][senderLastPeriod]);
@@ -144,7 +169,7 @@ contract DividendToken is StandardToken, Ownable {
     return true;
   }
 
-  function transferFrom(address _from, address _to, uint256 _value) public onlyLive returns (bool) {
+  function transferFrom(address _from, address _to, uint256 _value) onlyLive unpaused public returns (bool) {
     require(_to != address(0));
     uint256 senderLastPeriod = last[_from];
     require(_value <= holdings[_from][senderLastPeriod]);
@@ -186,7 +211,7 @@ contract DividendToken is StandardToken, Ownable {
     return true;
   }
   
-  function claimDividends() public returns (uint256 amount) {
+  function claimDividends() unpaused public returns (uint256 amount) {
     require(claimedTo[msg.sender] < period);
     uint256 total = 0;
     if (last[msg.sender] < period) {
@@ -235,7 +260,7 @@ contract DividendToken is StandardToken, Ownable {
       } else {
         holds = holdings[_address][i];
       }
-      if (holdings[_address][i] > 0 && !lockedAt(_address, i)) {
+      if (holds > 0 && !lockedAt(_address, i)) {
         uint256 multiplier = dividends[i].mul(holds);
         uint256 owed = multiplier.div(totalAt[i]);
         total += owed;
@@ -253,7 +278,7 @@ contract DividendToken is StandardToken, Ownable {
       } else {
         holds = holdings[msg.sender][i];
       }
-      if (holdings[msg.sender][i] > 0 && !lockedAt(msg.sender, i)) {
+      if (holds > 0 && !lockedAt(msg.sender, i)) {
         uint256 multiplier = dividends[i].mul(holds);
         uint256 owed = multiplier.div(totalAt[i]);
         total += owed;
@@ -263,10 +288,34 @@ contract DividendToken is StandardToken, Ownable {
   }
   
   function buyBack() public onlyAdmin onlyLive canBuyBack payable returns (bool) {
-    dividends[period] = msg.value;
+    buyBackTotal = msg.value;
     period += 1;
     Paid(msg.sender, period - 1, msg.value);
     ended = true;
+  }
+
+  function claimBuyBack() public returns (bool) {
+    require(ended);
+    require(!boughtBack[msg.sender]);
+    if (last[msg.sender] < period) {
+      updateHoldings(msg.sender);
+    }
+    uint256 multiplier = buyBackTotal.mul(holdings[msg.sender][period]);    
+    uint256 owed = multiplier.div(buyBackTotal);
+    boughtBack[msg.sender] = true;
+    msg.sender.transfer(owed);
+  }
+
+  function claimBuyBackFor(address _address) onlyAdmin public returns (bool) {
+    require(ended);
+    require(!boughtBack[_address]);
+    if (last[_address] < period) {
+      updateHoldings(_address);
+    }
+    uint256 multiplier = buyBackTotal.mul(holdings[_address][period]);    
+    uint256 owed = multiplier.div(buyBackTotal);
+    boughtBack[_address] = true;
+    _address.transfer(owed);
   }
 
   function dividendDateHistory() public view returns (uint256[]) {
@@ -294,13 +343,29 @@ contract DividendToken is StandardToken, Ownable {
       } else {
         multiplier = dividends[i].mul(holdings[_address][last[_address]]);
       }
-      divs[i] = multiplier.div(totalAt[i]);
+      if(lockedAt(_address, i)) {
+        divs[i] = 0;
+      } else {
+        divs[i] = multiplier.div(totalAt[i]);
+      }
     }
     return divs;
   }
-
+  
   event Paid(address indexed _sender, uint256 indexed _period, uint256 amount);
 
   event Claimed(address indexed _recipient, uint256 indexed _period, uint256 _amount);
+
+  event Locked(address indexed _locked, uint256 indexed _at);
+
+  event Unlocked(address indexed _unlocked, uint256 indexed _at);
+
+  event Paused(uint256 indexed _at);
+
+  event Unpaused(uint256 indexed _at);
+
+  event AdminAdded(address indexed _admin, address indexed _by);
+
+  event AdminRevoked(address indexed _admin, address indexed _by);
 
 }
