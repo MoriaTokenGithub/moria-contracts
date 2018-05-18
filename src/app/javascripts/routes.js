@@ -69,7 +69,7 @@ app.post('/api/pay/', (req, res) => {
     outstanding = o;
     return api.currentPeriod();
   }).then(function(p) {
-    if(outstanding > 0 && !pending(address, p) {
+    if(outstanding > 0 && !pending(address, p)) {
       return  api.payOutstandingDividends(address, function(value) {
         console.log("pay dividend callback");
         console.log(value);
