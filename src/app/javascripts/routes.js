@@ -88,7 +88,7 @@ app.post('/api/pay/', (req, res) => {
                    "success" : result,
                    "created" :  created,
                    "address" : address,
-                   "_amount" : o},
+                   "_amount" : outstanding},
                   json: true},
                  function (error, response, body) {
                    if (!error && response.statusCode == 200) {
