@@ -9,5 +9,11 @@ module.exports = {
       network_id: '*', // Match any network id
       gas: 4612388
     }
+  },
+
+  compilers: {
+    solc: {
+      version: "^0.4.18"
+    }
   }
 }
