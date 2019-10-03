@@ -65,7 +65,7 @@ app.post('/api/pay/', (req, res) => {
 
   console.log("address = " + address + " callback = " + callback);
 
-  api.getOutstandingDividends(address, function(o) {
+  api.getOutstandingDividends(address).then(function(o) {
     outstanding = o;
     return api.currentPeriod();
   }).then(function(p) {
