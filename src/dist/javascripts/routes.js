@@ -9,6 +9,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var api = require("./api.js");
+
+var txLookup = {};
+
+function registerRequest(address, tx, period) {
+  if (txLookup[address] == null) {
+    txLookup[address] = {};
+  }
+  txLookup[address][period] = { "tx": tx,
+    "time": Date.now() };
+}
+
+function pending(address, period) {
+  if (txLookup[address] == null) {
+    return false;
+  }
+  if (txLookup[address][period] == null) {
+    return false;
+  }
+  return txLookup[address][period]["time"] <= new Date(Date.now().getTime() + 120 * 60000);
+}
+
 api.init();
 
 app.get('/', function (req, res) {
@@ -49,19 +70,33 @@ app.post('/api/pay/', function (req, res) {
   var created = Date.now();
   var completed = 0;
 
+  var outstanding = 0;
+
   console.log("address = " + address + " callback = " + callback);
 
-  api.payOutstandingDividends(address, function (value) {
-    console.log("pay dividend callback");
-    console.log(value);
-    completed = Date.now();
+  api.getOutstandingDividends(address).then(function (o) {
+    outstanding = o;
+    return api.currentPeriod();
+  }).then(function (p) {
+    if (outstanding > 0 && !pending(address, p)) {
+      return api.payOutstandingDividends(address, function (value) {
+        console.log("pay dividend callback");
+        console.log(value);
+        completed = Date.now();
+      });
+    } else {
+      return new Promise(function (resolve, reject) {
+        resolve(false);
+      });
+    }
   }).then(function (result) {
     console.log("posting to: " + callback);
     request.post(callback, { body: {
         "completed": completed,
         "success": result,
         "created": created,
-        "address": address },
+        "address": address,
+        "_amount": outstanding },
       json: true }, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         console.log(body);
