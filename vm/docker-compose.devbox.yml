@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: vm/Dockerfile.ganache
     entrypoint: ganache-cli
-    command: -b 10
+    command: -b 10 -h 0.0.0.0
   api:
     build:
       context: ..
